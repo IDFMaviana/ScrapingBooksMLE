@@ -1,14 +1,15 @@
 # --- Framework Principal ---
 fastapi
-
 # --- Servidor ASGI ---
 uvicorn[standard]
-
 # --- Banco de Dados e ORM ---
 sqlalchemy
 psycopg2-binary
 #Postgress vetorial
 pgvector # Adiciona o pacote  pgvector (ideia futura)
-
 # --- Variáveis de Ambiente ---
 python-dotenv
+#Requests http
+requests
+#web Scraping
+beautifulsoup4
