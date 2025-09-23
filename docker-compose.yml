@@ -2,6 +2,7 @@ services:
   db:
     image: ankane/pgvector:latest
     container_name: book_scraper_db
+    env_file: ./.env
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -11,26 +12,37 @@ services:
     volumes:
       - book_scraper_data:/var/lib/postgresql/data
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-api:
-   build:
-     context: .
-     dockerfile: Dockerfile
-   container_name: books_api
-   command: uvicorn api.main:app --host 0.0.0.0 --port 8000
-   ports:
-     - "8000:8000"
-   depends_on:
-      - db
-
-scraper:
-  build:
-    context: .
-    dockerfile: Dockerfile
-  container_name: book_scraper
-  command: python scripts/scraper.py
-  depends_on:
-    - db
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: books_api
+    env_file:
+      - ./.env
+    command: sh -c "sleep 10 && uvicorn app.api.main:app --host 0.0.0.0 --port 8000"
+#uvicorn app.api.main:app --host 0.0.0.0 --port 8000
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+         condition: service_healthy 
+  scraper:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: book_scraper
+    env_file:
+      - ./.env
+    command: python -m app.scripts.scraper
+    depends_on:
+      db:
+         condition: service_healthy
 
 volumes:
   book_scraper_data:

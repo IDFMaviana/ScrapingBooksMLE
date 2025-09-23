@@ -13,3 +13,7 @@ python-dotenv
 requests
 #web Scraping
 beautifulsoup4
+
+python-dotenv
+
+pydantic
