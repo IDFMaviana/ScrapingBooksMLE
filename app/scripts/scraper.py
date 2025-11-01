@@ -94,5 +94,5 @@ def scrape_books():
 
     db.close()
 
-#if __name__ == "__main__":
-#    scrape_books()
+if __name__ == "__main__":
+    scrape_books()
