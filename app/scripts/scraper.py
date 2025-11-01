@@ -71,13 +71,19 @@ def scrape_books():
                 relative_image_url = image_element['src']
                 image_url = urljoin(BASE_URL, relative_image_url)
                 
-                novo_livro = models.books(title=title,
-                                          price = price,
-                                          rating = rating,
-                                          image_url = image_url,
-                                          category_id = categoria.id)
-                db.add(novo_livro)
-                livros_adicionados += 1
+                existing = db.query(models.books).filter_by(title=title, category_id=categoria.id).first()
+                if existing:
+                    existing.price = price
+                    existing.rating = rating
+                    existing.image_url = image_url
+                else:
+                    novo_livro = models.books(title=title,
+                                              price = price,
+                                              rating = rating,
+                                              image_url = image_url,
+                                              category_id = categoria.id)
+                    db.add(novo_livro)
+                    livros_adicionados += 1
         print(f"\nAdicionando {livros_adicionados} livros à base de dados...")
         db.commit()
         print("Livros salvos com sucesso!")
