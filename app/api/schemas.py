@@ -21,6 +21,14 @@ class BookSchema(BaseModel):
 
     class Config:
         from_attributes = True
+# schema para a estatistica
+class CategoryStatsSchema(BaseModel):
+    category_name: str
+    book_count: int
+    average_price: float
+
+    class Config:
+        from_attributes = True
 
 class HealthCheckResponse(BaseModel):
     api_status: str
