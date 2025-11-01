@@ -30,7 +30,7 @@ except Exception:
 # Engine com pre-ping para recuperar conexões interrompidas
 engine = create_engine(SQLALCHEMY_DATABASE_URL, pool_pre_ping=True)
 
-# Fábrica de sessões
+# sessões
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 # Base declarativa

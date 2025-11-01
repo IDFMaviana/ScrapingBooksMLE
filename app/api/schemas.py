@@ -33,3 +33,33 @@ class CategoryStatsSchema(BaseModel):
 class HealthCheckResponse(BaseModel):
     api_status: str
     db_status: str
+
+# Estatísticas gerais (overview)
+class RatingDistributionSchema(BaseModel):
+    one: int
+    two: int
+    three: int
+    four: int
+    five: int
+
+    class Config:
+        from_attributes = True
+
+class OverviewStatsSchema(BaseModel):
+    total_books: int
+    average_price: float
+    rating_distribution: RatingDistributionSchema
+
+    class Config:
+        from_attributes = True
+
+# Estatísticas detalhadas por categoria
+class CategoryDetailStatsSchema(BaseModel):
+    category_name: str
+    book_count: int
+    average_price: float
+    min_price: float
+    max_price: float
+
+    class Config:
+        from_attributes = True

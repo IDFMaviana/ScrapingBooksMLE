@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 #import sys
 #import os
 #sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
@@ -85,3 +85,97 @@ def health_check(db: Session = Depends(get_db)):
         "api_status": "ok",
         "db_status": db_status
     }
+
+# -----------------------------
+# Endpoints de Insights/Estatísticas
+# -----------------------------
+
+@router.get(
+    "/api/v1/stats/overview",
+    tags=["Stats"],
+    response_model=schemas.OverviewStatsSchema
+)
+def get_stats_overview(db: Session = Depends(get_db)):
+    total = db.query(models.books.id).count()
+    avg_price = db.query(func.avg(models.books.price)).scalar() or 0.0
+
+    # Distribuição de ratings (1..5)
+    rating_rows = (
+        db.query(models.books.rating, func.count(models.books.id))
+        .group_by(models.books.rating)
+        .all()
+    )
+    dist_map = {r: 0 for r in [1, 2, 3, 4, 5]}
+    for r, c in rating_rows:
+        if r in dist_map:
+            dist_map[r] = c
+
+    return {
+        "total_books": total,
+        "average_price": float(avg_price),
+        "rating_distribution": {
+            "one": dist_map[1],
+            "two": dist_map[2],
+            "three": dist_map[3],
+            "four": dist_map[4],
+            "five": dist_map[5],
+        },
+    }
+
+
+@router.get(
+    "/api/v1/stats/categories",
+    tags=["Stats"],
+    response_model=List[schemas.CategoryDetailStatsSchema]
+)
+def get_stats_categories(db: Session = Depends(get_db)):
+    stats_query = (
+        db.query(
+            models.Category.name.label("category_name"),
+            func.count(models.books.id).label("book_count"),
+            func.avg(models.books.price).label("average_price"),
+            func.min(models.books.price).label("min_price"),
+            func.max(models.books.price).label("max_price"),
+        )
+        .join(models.books, models.Category.id == models.books.category_id)
+        .group_by(models.Category.name)
+        .order_by(models.Category.name)
+    )
+
+    rows = stats_query.all()
+    return rows
+
+
+@router.get(
+    "/api/v1/books/top-rated",
+    tags=["books"],
+    response_model=List[schemas.BookSchema]
+)
+def get_top_rated_books(limit: int = 10, db: Session = Depends(get_db)):
+    query = (
+        db.query(models.books)
+        .options(joinedload(models.books.category))
+        .order_by(models.books.rating.desc(), models.books.title.asc())
+        .limit(limit)
+    )
+    books = query.all()
+    return books
+
+
+@router.get(
+    "/api/v1/books/price-range",
+    tags=["books"],
+    response_model=List[schemas.BookSchema]
+)
+def get_books_por_faixa_preco(
+    price_min: Optional[float] = Query(None, alias="min"),
+    price_max: Optional[float] = Query(None, alias="max"),
+    db: Session = Depends(get_db),
+):
+    query = db.query(models.books).options(joinedload(models.books.category))
+    if price_min is not None:
+        query = query.filter(models.books.price >= price_min)
+    if price_max is not None:
+        query = query.filter(models.books.price <= price_max)
+    books = query.order_by(models.books.price.asc()).all()
+    return books
