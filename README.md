@@ -1,4 +1,5 @@
 # ScrapingBooksMLE
+![alt text](diagrama.png)
 
 API e scraper para coletar dados do site books.toscrape.com, salvar em PostgreSQL e disponibilizar consultas via FastAPI. O projeto foi organizado para ser simples de rodar localmente ou via Docker Compose.
 
@@ -209,3 +210,9 @@ uvicorn app.api.main:app --host 0.0.0.0 --port 8000 --reload
 - O serviço `api` no `docker-compose.yml` já usa `uvicorn` e aguarda o banco estar saudável antes de iniciar.
 - O pacote `pgvector` está presente na imagem do banco para possíveis evoluções; não é exigido pelas rotas atuais.
 - Certos caracteres especiais do site podem aparecer com codificações diferentes dependendo do terminal; isso não afeta a funcionalidade.
+
+
+Link do video de apresentação: https://youtu.be/DkPhColAaTQ
+
+Link da api para consumo: scraping-books-production.up.railway.app
+
