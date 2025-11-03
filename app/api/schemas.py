@@ -63,3 +63,42 @@ class CategoryDetailStatsSchema(BaseModel):
 
     class Config:
         from_attributes = True
+
+# -----------------------------
+# Schemas para consumo de modelos ML
+# -----------------------------
+
+class MLFeatureSchema(BaseModel):
+    book_id: int
+    price: float
+    rating: int
+    category_id: int
+
+    class Config:
+        from_attributes = True
+
+
+class MLTrainingRowSchema(BaseModel):
+    book_id: int
+    title: str
+    price: float
+    rating: int
+    category_name: str
+
+    class Config:
+        from_attributes = True
+
+
+class MLPredictionIn(BaseModel):
+    book_id: int
+    prediction: float
+    model: str | None = None
+
+
+class MLPredictionsIn(BaseModel):
+    items: list[MLPredictionIn]
+
+
+class MLPredictionsAck(BaseModel):
+    received: int
+    status: str

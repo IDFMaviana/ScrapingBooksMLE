@@ -201,3 +201,71 @@ def get_stats_categories(db: Session = Depends(get_db)):
     rows = stats_query.all()
     return rows
 
+
+# -----------------------------
+# Endpoints para consumo de modelos ML
+# -----------------------------
+
+@router.get(
+    "/api/v1/ml/features",
+    tags=["ML"],
+    response_model=List[schemas.MLFeatureSchema]
+)
+def get_ml_features(limit: int = 500, offset: int = 0, db: Session = Depends(get_db)):
+    query = (
+        db.query(models.books)
+        .options(joinedload(models.books.category))
+        .order_by(models.books.id.asc())
+        .offset(offset)
+        .limit(limit)
+    )
+    rows = query.all()
+    feats = [
+        {
+            "book_id": r.id,
+            "price": float(r.price) if r.price is not None else 0.0,
+            "rating": int(r.rating) if r.rating is not None else 0,
+            "category_id": int(r.category_id) if r.category_id is not None else 0,
+        }
+        for r in rows
+    ]
+    return feats
+
+
+@router.get(
+    "/api/v1/ml/training-data",
+    tags=["ML"],
+    response_model=List[schemas.MLTrainingRowSchema]
+)
+def get_ml_training_data(limit: int = 500, offset: int = 0, db: Session = Depends(get_db)):
+    query = (
+        db.query(models.books)
+        .options(joinedload(models.books.category))
+        .order_by(models.books.id.asc())
+        .offset(offset)
+        .limit(limit)
+    )
+    rows = query.all()
+    data = [
+        {
+            "book_id": r.id,
+            "title": r.title,
+            "price": float(r.price) if r.price is not None else 0.0,
+            "rating": int(r.rating) if r.rating is not None else 0,
+            "category_name": r.category.name if r.category else None,
+        }
+        for r in rows
+    ]
+    return data
+
+
+@router.post(
+    "/api/v1/ml/predictions",
+    tags=["ML"],
+    response_model=schemas.MLPredictionsAck
+)
+def post_ml_predictions(payload: schemas.MLPredictionsIn, db: Session = Depends(get_db)):
+    # Endpoint para receber predições de modelos externos.
+    # Nesta versão, apenas acusamos recebimento para fins de integração.
+    received = len(payload.items) if payload and payload.items else 0
+    return {"received": received, "status": "ok"}
